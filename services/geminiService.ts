@@ -29,12 +29,33 @@ const fileToGenerativePart = async (file: File): Promise<{inlineData: {data: str
   });
 };
 
+const extractTextFromDocx = async (file: File): Promise<string> => {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
+};
+
 export const analyzeDocument = async (file: File): Promise<{ text: string, topics: string[], analysis: DocumentAnalysis } | { error: string } | null> => {
     if (!apiKey) return { error: "API Key is missing." };
 
     // 50MB Limit Check
     if (file.size > 50 * 1024 * 1024) {
         return { error: "Document size exceeds the 50MB limit. Please upload a smaller file or compress the PDF." };
+    }
+
+    // Check supported file types
+    const supportedTypes = [
+        'application/pdf',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/jpg'
+    ];
+
+    if (!supportedTypes.includes(file.type)) {
+        return { 
+            error: `Unsupported file type: ${file.type}. Please upload PDF, TXT, or image files only. For Word documents, please convert to PDF first.` 
+        };
     }
 
     try {
@@ -124,7 +145,6 @@ export const analyzeDocument = async (file: File): Promise<{ text: string, topic
     } catch (error: any) {
         console.error("Document Analysis Error:", error);
         
-        // Handle specific API error messages if needed, though the size check above should catch the explicit size error
         if (error.message && error.message.includes("exceeds supported limit")) {
              return { error: "Document size exceeds the AI model's supported limit (50MB)." };
         }
@@ -132,7 +152,6 @@ export const analyzeDocument = async (file: File): Promise<{ text: string, topic
         return { error: "Failed to analyze document. Please try again." };
     }
 };
-
 export const generateQuizFromContent = async (content: string, title: string): Promise<Quiz | null> => {
   if (!apiKey) {
     console.error("API Key missing");
