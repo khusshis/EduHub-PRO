@@ -54,7 +54,7 @@ export const analyzeDocument = async (file: File): Promise<{ text: string, topic
 
     if (!supportedTypes.includes(file.type)) {
         return { 
-            error: `Unsupported file type: ${file.type}. Please upload PDF, TXT, or image files only. For Word documents, please convert to PDF first.` 
+            error: Unsupported file type: ${file.type}. Please upload PDF, TXT, or image files only. For Word documents, please convert to PDF first. 
         };
     }
 
